@@ -9,13 +9,33 @@ namespace TesteDev.WinForms
     {
         private int? _selectedId = null;
 
-        public MainForm() => InitializeComponent();
+        public MainForm()
+        {
+            InitializeComponent();
+
+            // Não deixa usar o -
+            numIdade.KeyPress += (s, e) =>
+            {
+                if (e.KeyChar == '-') e.Handled = true;
+            };
+        }
+
 
         private void MainForm_Load(object? sender, EventArgs e)
         {
             CarregarGrid(null);
             LimparCampos();
+
+            // Grid: remove a linha vazia e o cabeçalho de linha
+            dgv.AllowUserToAddRows = false;
+            dgv.RowHeadersVisible = false;
+
+            // NumericUpDown: não permite 0 nem negativos
+            numIdade.Minimum = 1;
+            numIdade.Maximum = 150;
+            numIdade.DecimalPlaces = 0;
         }
+
 
         //- CARREGAR GRID (com filtro opcional) 
         private void CarregarGrid(string? termo)
@@ -131,8 +151,14 @@ namespace TesteDev.WinForms
             con.Open();
             using var cmd = new NpgsqlCommand(
                 "INSERT INTO public.cadastro (nome, idade) VALUES (@nome, @idade) RETURNING id;", con);
+
             cmd.Parameters.AddWithValue("@nome", txtNome.Text.Trim());
-            cmd.Parameters.AddWithValue("@idade", (int)numIdade.Value);
+
+            // envia NULL se o campo estiver vazio
+            var idadeObj = string.IsNullOrWhiteSpace(numIdade.Text)
+                ? (object)DBNull.Value
+                : (object)(int)numIdade.Value;
+            cmd.Parameters.AddWithValue("@idade", idadeObj);
 
             try
             {
@@ -142,49 +168,83 @@ namespace TesteDev.WinForms
                 CarregarGrid(txtBuscar.Text);
                 LimparCampos();
             }
-            catch (PostgresException ex) { TratarErroPg(ex); }
+            catch (PostgresException ex)
+            {
+                TratarErroPg(ex);
+            }
         }
+
 
         private void Atualizar()
         {
-            if (_selectedId is null) return;
+            if (_selectedId == null) return;
 
             using var con = new NpgsqlConnection(Program.ConnectionString);
             con.Open();
             using var cmd = new NpgsqlCommand(
                 "UPDATE public.cadastro SET nome=@nome, idade=@idade WHERE id=@id;", con);
+
             cmd.Parameters.AddWithValue("@id", _selectedId.Value);
             cmd.Parameters.AddWithValue("@nome", txtNome.Text.Trim());
-            cmd.Parameters.AddWithValue("@idade", (int)numIdade.Value);
+
+           
+            var idadeObj = string.IsNullOrWhiteSpace(numIdade.Text)
+                ? (object)DBNull.Value
+                : (object)(int)numIdade.Value;
+            cmd.Parameters.AddWithValue("@idade", idadeObj);
 
             try
             {
                 var rows = cmd.ExecuteNonQuery();
                 if (rows > 0)
                 {
+                    MessageBox.Show("Atualizado.", "OK",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     CarregarGrid(txtBuscar.Text);
                     LimparCampos();
                 }
             }
-            catch (PostgresException ex) { TratarErroPg(ex); }
+            catch (PostgresException ex)
+            {
+                TratarErroPg(ex);
+            }
         }
 
+
         //- ERROS DO PG 
+
         private void TratarErroPg(PostgresException ex)
         {
             string msg = ex.SqlState switch
             {
-                "23502" => "Todos os campos são obrigatórios (NOT NULL).",
-                "23505" => "A idade não pode se repetir (UNIQUE).",
-                "23514" => "A idade deve ser maior que zero (CHECK).",
+                "23502" => // NOT NULL
+                    string.Equals(ex.ColumnName, "idade", StringComparison.OrdinalIgnoreCase)
+                        ? "Idade é obrigatória."
+                        : (string.Equals(ex.ColumnName, "nome", StringComparison.OrdinalIgnoreCase)
+                            ? "Precisa digitar o nome."
+                            : "Todos os campos são obrigatórios."),
+                "23514" => // CHECK
+                    string.Equals(ex.ConstraintName, "ck_idade_pos", StringComparison.OrdinalIgnoreCase)
+                        ? "A idade deve ser maior que zero."
+                        : (string.Equals(ex.ConstraintName, "ck_nome_not_blank", StringComparison.OrdinalIgnoreCase)
+                            ? "Precisa digitar o nome."
+                            : "Valor inválido."),
+                "23505" => // UNIQUE
+                    string.Equals(ex.ConstraintName, "uq_idade", StringComparison.OrdinalIgnoreCase)
+                        ? "A idade não pode se repetir."
+                        : "Registro já existe (único).",
                 _ => $"Erro do banco: {ex.MessageText}"
             };
+
             MessageBox.Show(msg, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+
+
 
         private void lblBuscar_Click(object sender, EventArgs e)
         {
 
         }
+
     }
 }

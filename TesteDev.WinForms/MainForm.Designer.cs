@@ -37,9 +37,9 @@ namespace TesteDev.WinForms
             ((System.ComponentModel.ISupportInitialize)numIdade).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgv).BeginInit();
             SuspendLayout();
-             
+            
             // txtNome
-             
+
             txtNome.Location = new System.Drawing.Point(78, 12);
             txtNome.Name = "txtNome";
             txtNome.Size = new System.Drawing.Size(280, 23);
@@ -48,15 +48,16 @@ namespace TesteDev.WinForms
             // numIdade
              
             numIdade.Location = new System.Drawing.Point(78, 48);
-            numIdade.Maximum = new decimal(new int[] { 150, 0, 0, 0 });
+            numIdade.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             numIdade.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numIdade.Name = "numIdade";
             numIdade.Size = new System.Drawing.Size(120, 23);
             numIdade.TabIndex = 4;
             numIdade.Value = new decimal(new int[] { 18, 0, 0, 0 });
-             
+            numIdade.DecimalPlaces = 0;
+
             // btnNovo
-             
+
             btnNovo.Location = new System.Drawing.Point(78, 85);
             btnNovo.Name = "btnNovo";
             btnNovo.Size = new System.Drawing.Size(85, 28);
