@@ -12,7 +12,7 @@ Aplicativo Windows Forms (.NET 8) com CRUD simples em PostgreSQL. A aplicação 
 
 - Windows 10+
 - PostgreSQL 13+ instalado e em execução
-- Usuário do banco com permissão de criação (para rodar `schema.sql`)
+- Usuário do banco com permissão de criação (para rodar `testedev.sql`)
 
 > **Nota:** Para desenvolvimento, é necessário o [.NET SDK 8.x](https://dotnet.microsoft.com/). Para instalação via setup, não é necessário, pois o instalador já inclui o runtime necessário.
 
@@ -30,15 +30,15 @@ Aplicativo Windows Forms (.NET 8) com CRUD simples em PostgreSQL. A aplicação 
 ### Opção 2: Execução via Visual Studio (Desenvolvimento)
 
 1. Abra o repositório no Visual Studio 2022+ ou no VS Code (com extensões C#).
-2. Garanta que o banco `TesteDev` esteja com o schema criado (rodar `schema.sql`).
+2. Garanta que o banco `TesteDev` esteja com o schema criado (rodar `testedev.sql`).
 3. Execute o projeto `TesteDev.WinForms` (F5). A janela principal (`MainForm`) abrirá.
 
 ## Configuração do Banco de Dados
 
 1. Abra o pgAdmin e crie (se necessário) o banco `TesteDev`.
-2. No pgAdmin (Query Tool), execute o arquivo `schema.sql` localizado na raiz do projeto.
-   - O script cria as tabelas `public.cadastro` e `public.log_operacoes`, a função/trigger de log, e o usuário `app_user` com as permissões adequadas.
-3. O `schema.sql` também insere alguns dados iniciais para teste.
+2. No pgAdmin, restaure o banco de dados usando o arquivo `testedev.sql` localizado na raiz do projeto.
+   - O arquivo contém o backup completo do banco com as tabelas `public.cadastro` e `public.log_operacoes`, a função/trigger de log, e o usuário `app_user` com as permissões adequadas.
+3. O `testedev.sql` também inclui dados iniciais para teste.
 
 Caso queira alterar o usuário/senha do banco, ajuste a connection string:
 
@@ -79,7 +79,7 @@ TesteDev.WinForms/                     # Projeto WinForms
 publish/                                # Pasta com instalador ClickOnce
   setup.exe                            # Instalador do aplicativo
   TesteDev.WinForms.application        # Manifesto da aplicação
-schema.sql                              # Script completo de criação do schema
+testedev.sql                            # Backup completo do banco de dados PostgreSQL
 ```
 
 ## Estrutura do Banco de Dados
@@ -103,7 +103,7 @@ schema.sql                              # Script completo de criação do schema
 
 ### Usuário do Banco
 
-- Usuário `app_user` criado pelo script `schema.sql` com permissões apenas sobre a tabela `cadastro`
+- Usuário `app_user` criado pelo backup `testedev.sql` com permissões apenas sobre a tabela `cadastro`
 
 ## Notas de Implementação
 
